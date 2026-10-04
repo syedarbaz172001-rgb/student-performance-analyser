@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#172746">
+    <meta name="description" content="Student Performance Analyser turns class results into clear, private learning insights.">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="manifest" href="./manifest.webmanifest">
+    <link rel="icon" href="./icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+    <link rel="stylesheet" href="./styles.css">
+    <title>Student Performance Analyser</title>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="./" aria-label="Student Performance Analyser home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 48 48" focusable="false">
+              <path d="M7 13.5c6.5-2.4 11.7-1.5 17 2.1v21c-5.3-3.6-10.5-4.5-17-2.1z"/>
+              <path d="M41 13.5c-6.5-2.4-11.7-1.5-17 2.1v21c5.3-3.6 10.5-4.5 17-2.1z"/>
+              <path class="brand-chart" d="M13 28h5l3-5 4 8 4-6h6"/>
+              <path class="brand-fold" d="M24 15.5v21"/>
+            </svg>
+          </span>
+          <span>
+            <strong>Student Performance Analyser</strong>
+            <small>Your class, clearly understood</small>
+          </span>
+        </a>
+        <div class="header-actions">
+          <button class="button button-quiet" id="install-button" type="button">Install app</button>
+          <button class="button button-quiet" id="add-button" type="button">Add student</button>
+          <button class="button button-primary" id="import-button" type="button">Import CSV</button>
+          <input id="csv-file" type="file" accept=".csv,text/csv" hidden>
+        </div>
+      </header>
+
+      <section class="welcome">
+        <div>
+          <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>YOUR CLASS AT A GLANCE</p>
+          <h1>Every learner has a story.</h1>
+          <p class="welcome-copy">Turn class results into clear insights. Add students or import your own CSV to get started.</p>
+        </div>
+        <button class="button button-outline" id="export-button" type="button" disabled>Export report</button>
+      </section>
+
+      <div class="notice" id="notice" role="status" aria-live="polite">Loading student data...</div>
+
+      <dialog class="student-dialog" id="student-dialog" aria-labelledby="student-dialog-title">
+        <form id="student-form">
+          <div class="dialog-heading">
+            <h2 id="student-dialog-title">Add a student</h2>
+            <p>Enter student details and scores from 0 to 100.</p>
+          </div>
+          <div class="student-form-grid">
+            <label>Student ID<input name="Student ID" required></label>
+            <label>Name<input name="Name" required></label>
+            <label>Gender<input name="Gender" required></label>
+            <label>Class<input name="Class" required></label>
+            <label>Maths<input name="Maths" type="number" min="0" max="100" step="any" required></label>
+            <label>Science<input name="Science" type="number" min="0" max="100" step="any" required></label>
+            <label>English<input name="English" type="number" min="0" max="100" step="any" required></label>
+            <label>History<input name="History" type="number" min="0" max="100" step="any" required></label>
+            <label>Attendance<input name="Attendance" type="number" min="0" max="100" step="any" required></label>
+            <label>Assignment score<input name="AssignmentScore" type="number" min="0" max="100" step="any" required></label>
+          </div>
+          <div class="dialog-actions">
+            <button class="button button-quiet" id="cancel-student" type="button">Cancel</button>
+            <button class="button button-primary" type="submit">Add student</button>
+          </div>
+        </form>
+      </dialog>
+
+      <section class="metric-grid" aria-label="Class summary">
+        <article class="metric-card">
+          <span class="metric-label">Total students</span>
+          <span class="metric-icon icon-students" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M20 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </span>
+          <strong class="metric-value" id="student-count">-</strong>
+          <span class="metric-foot" id="class-count">Across all classes</span>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">Class average</span>
+          <span class="metric-icon icon-average" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M4 19V5m0 14h17"/><path d="M8 15v-4m5 4V7m5 8V9"/></svg>
+          </span>
+          <strong class="metric-value" id="class-average">-</strong>
+          <span class="metric-foot">Average of subject scores</span>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">Pass rate</span>
+          <span class="metric-icon icon-pass" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M20 7 10 17l-5-5"/><path d="M21 12a9 9 0 1 1-5.5-8.3"/></svg>
+          </span>
+          <strong class="metric-value" id="pass-rate">-</strong>
+          <span class="metric-foot">Students averaging 50% or higher</span>
+        </article>
+        <article class="metric-card metric-highlight">
+          <span class="metric-label">Top performer</span>
+          <span class="metric-icon icon-top" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z"/></svg>
+          </span>
+          <strong class="metric-value metric-name" id="top-performer">-</strong>
+          <span class="metric-foot" id="top-score">-</span>
+        </article>
+      </section>
+
+      <section class="insight-grid" aria-label="Performance charts">
+        <article class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="panel-kicker">SUBJECT INSIGHTS</p>
+              <h2>Subject averages</h2>
+              <p>Average score for each subject</p>
+            </div>
+          </div>
+          <div class="subject-chart" id="subject-chart"></div>
+        </article>
+        <article class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="panel-kicker">CLASS BREAKDOWN</p>
+              <h2>Grade distribution</h2>
+              <p>Students by overall grade</p>
+            </div>
+          </div>
+          <div class="grade-chart" id="grade-chart"></div>
+        </article>
+      </section>
+
+      <section class="panel student-panel">
+        <div class="student-heading">
+          <div>
+            <p class="panel-kicker">YOUR ROSTER</p>
+            <h2>Students</h2>
+            <p id="student-result-count">Loading records</p>
+          </div>
+          <div class="filters">
+            <label class="sr-only" for="class-filter">Filter by class</label>
+            <select id="class-filter">
+              <option value="all">All classes</option>
+            </select>
+            <label class="sr-only" for="student-search">Search students</label>
+            <input id="student-search" type="search" placeholder="Search name or ID">
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Student</th>
+                <th scope="col">Class</th>
+                <th scope="col">Average</th>
+                <th scope="col">Grade</th>
+                <th scope="col">Attendance</th>
+              </tr>
+            </thead>
+            <tbody id="student-rows"></tbody>
+          </table>
+          <div class="empty-state" id="empty-state" hidden>
+            <span class="empty-icon" aria-hidden="true">+</span>
+            <h3 id="empty-title">Your dashboard starts here</h3>
+            <p id="empty-copy">Add a student or import a CSV to see class insights. Your data stays in this browser.</p>
+            <div class="empty-actions">
+              <button class="button button-primary" id="empty-add-button" type="button">Add your first student</button>
+              <button class="button button-quiet" id="template-button" type="button">Download CSV template</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <span id="data-source">Student data</span>
+        <span><span class="privacy-dot" aria-hidden="true"></span>Private by design · saved only in this browser</span>
+        <span>Student Performance Analyser · Made for brighter learning</span>
+      </footer>
+    </main>
+    <script src="./app.js" defer></script>
+  </body>
+</html>
